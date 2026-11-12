@@ -28,3 +28,7 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+- All UI copy lives in src/i18n (tr.ts is the source type, en.ts mirrors it); routes just pass a locale to shared page components in src/components/site — keeps both languages in sync.
+- DJ mode is a `.dj` class that overrides color tokens in src/styles.css — same components, different palette.
