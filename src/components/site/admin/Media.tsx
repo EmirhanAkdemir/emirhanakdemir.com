@@ -1,0 +1,330 @@
+import { useState, useRef, useEffect } from "react";
+import { useSuspenseQuery, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Upload, Save, Trash2, RefreshCw, Image as ImageIcon } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
+import { cmsQuery } from "@/lib/cms/queries";
+import { saveMedia, deleteMedia, mediaUrls } from "@/lib/cms/admin.functions";
+import { validateImage } from "@/lib/cms/rules";
+import { Button } from "@/components/ui/button";
+import { Field, Check, Modal, Message, useAdmin } from "./shared";
+async function uploadFile(file: File, path: string, onProgress: (n: number) => void) {
+  if (!validateImage(file)) throw new Error("image");
+  const bitmap = await createImageBitmap(file);
+  bitmap.close();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) throw new Error("session");
+  return new Promise<void>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(
+      "POST",
+      `${import.meta.env["VITE_SUPABASE_URL"]}/storage/v1/object/project-images/${path.split("/").map(encodeURIComponent).join("/")}`,
+    );
+    xhr.setRequestHeader("Authorization", `Bearer ${session.access_token}`);
+    xhr.setRequestHeader("apikey", import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"]);
+    xhr.setRequestHeader("Content-Type", file.type);
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+    };
+    xhr.onload = () =>
+      xhr.status >= 200 && xhr.status < 300 ? resolve() : reject(new Error("upload"));
+    xhr.onerror = () => reject(new Error("upload"));
+    xhr.timeout = 120000;
+    xhr.ontimeout = () => reject(new Error("upload"));
+    xhr.send(file);
+  });
+}
+export function Media() {
+  const { data } = useSuspenseQuery(cmsQuery());
+  const { t } = useAdmin();
+  const [project, setProject] = useState(data.projects[0]?.id ?? "");
+  const [progress, setProgress] = useState<number | null>(null);
+  const [message, setMessage] = useState("");
+  const input = useRef<HTMLInputElement>(null);
+  const cache = useQueryClient();
+  const save = useServerFn(saveMedia);
+  const urls = useServerFn(mediaUrls);
+  const rows = data.media.filter((m) => m.project_id === project);
+  const { data: signed = [] } = useQuery({
+    queryKey: ["cms-media-urls", project, rows.map((r) => r.storage_path)],
+    queryFn: () => urls({ data: rows.map((r) => r.storage_path) }),
+    refetchInterval: 45000,
+  });
+  async function upload(files: FileList | null) {
+    if (!files || !project) return;
+    setMessage("");
+    setProgress(0);
+    let offset = rows.length;
+    try {
+      for (const file of Array.from(files)) {
+        if (!validateImage(file)) throw new Error("image");
+        const path = `${project}/${crypto.randomUUID()}.${file.type.split("/")[1] === "jpeg" ? "jpg" : file.type.split("/")[1]}`;
+        await uploadFile(file, path, setProgress);
+        try {
+          await save({
+            data: {
+              id: crypto.randomUUID(),
+              project_id: project,
+              storage_path: path,
+              kind: "gallery",
+              alt_tr: "",
+              alt_en: "",
+              published: false,
+              display_order: offset++,
+              expected_updated_at: null,
+            },
+          });
+        } catch (error) {
+          await supabase.storage.from("project-images").remove([path]);
+          throw error;
+        }
+      }
+      await cache.invalidateQueries({ queryKey: ["cms"] });
+      setMessage(t.saved);
+    } catch (error) {
+      setMessage(error instanceof Error && error.message === "image" ? t.imageError : t.error);
+    } finally {
+      setProgress(null);
+      if (input.current) input.current.value = "";
+    }
+  }
+  return (
+    <>
+      <h1 className="mb-8 text-3xl">{t.media}</h1>
+      <div className="mb-8 flex flex-wrap items-end gap-5">
+        <label className="grid min-w-0 flex-1 gap-2 text-sm text-muted-foreground">
+          {t.selectProject}
+          <select
+            className="h-10 w-full rounded border border-input bg-background px-3 text-foreground"
+            value={project}
+            disabled={progress !== null}
+            onChange={(e) => setProject(e.target.value)}
+          >
+            {data.projects.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <input
+          type="file"
+          multiple
+          accept="image/jpeg,image/png,image/webp,image/avif"
+          className="hidden"
+          ref={input}
+          onChange={(e) => void upload(e.target.files)}
+        />
+        <Button disabled={!project || progress !== null} onClick={() => input.current?.click()}>
+          <Upload />
+          {t.upload}
+        </Button>
+      </div>
+      {progress !== null && (
+        <div className="mb-6">
+          <progress className="h-2 w-full accent-primary" value={progress} max={100} />
+          <p className="mt-2 font-mono text-xs">{progress}%</p>
+        </div>
+      )}
+      <Message text={message} />
+      <div className="grid gap-6 lg:grid-cols-2">
+        {rows.map((row) => (
+          <MediaEditor
+            key={row.id + row.updated_at}
+            initial={row}
+            url={signed.find((s) => s.path === row.storage_path)?.url ?? ""}
+          />
+        ))}
+      </div>
+      {!rows.length && (
+        <div className="flex flex-col items-center gap-4 border-y border-border py-20 text-muted-foreground">
+          <ImageIcon className="size-8" />
+          {t.empty}
+        </div>
+      )}
+    </>
+  );
+}
+function MediaEditor({ initial, url }: { initial: Tables<"project_media">; url: string }) {
+  const { t } = useAdmin();
+  const [value, setValue] = useState(initial);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [replacement, setReplacement] = useState<File | null>(null);
+  const [localUrl, setLocalUrl] = useState("");
+  const [progress, setProgress] = useState<number | null>(null);
+  const save = useServerFn(saveMedia);
+  const remove = useServerFn(deleteMedia);
+  const cache = useQueryClient();
+  const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!replacement) {
+      setLocalUrl("");
+      return;
+    }
+    const u = URL.createObjectURL(replacement);
+    setLocalUrl(u);
+    return () => URL.revokeObjectURL(u);
+  }, [replacement]);
+  return (
+    <article className="overflow-hidden rounded border border-border bg-card">
+      <div className="flex aspect-[4/3] items-center justify-center bg-muted">
+        {localUrl || url ? (
+          <img src={localUrl || url} alt={value.alt_tr} className="size-full object-contain" />
+        ) : (
+          <ImageIcon className="size-8 text-muted-foreground" />
+        )}
+      </div>
+      <form
+        className="space-y-4 p-5"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          let newPath: string | null = null;
+          let committed = false;
+          try {
+            if (replacement) {
+              newPath = `${value.project_id}/${crypto.randomUUID()}.${replacement.type.split("/")[1] === "jpeg" ? "jpg" : replacement.type.split("/")[1]}`;
+              await uploadFile(replacement, newPath, setProgress);
+            }
+            await save({
+              data: {
+                id: value.id,
+                project_id: value.project_id,
+                storage_path: newPath ?? value.storage_path,
+                kind: value.kind as "cover" | "gallery",
+                alt_tr: value.alt_tr,
+                alt_en: value.alt_en,
+                published: value.published,
+                display_order: value.display_order,
+                expected_updated_at: initial.updated_at,
+              },
+            });
+            committed = true;
+            if (newPath)
+              await supabase.storage.from("project-images").remove([initial.storage_path]);
+            setMessage(t.saved);
+            await cache.invalidateQueries({ queryKey: ["cms"] });
+          } catch {
+            if (newPath && !committed)
+              await supabase.storage.from("project-images").remove([newPath]);
+            setMessage(t.error);
+          } finally {
+            setBusy(false);
+            setProgress(null);
+          }
+        }}
+      >
+        <Field
+          label={t.altTr}
+          value={value.alt_tr}
+          onChange={(v) => setValue({ ...value, alt_tr: v })}
+        />
+        <Field
+          label={t.altEn}
+          value={value.alt_en}
+          onChange={(v) => setValue({ ...value, alt_en: v })}
+        />
+        <Field
+          label={t.order}
+          type="number"
+          value={value.display_order}
+          onChange={(v) => setValue({ ...value, display_order: Number(v) })}
+        />
+        <div className="flex flex-wrap gap-4">
+          <Check
+            label={t.cover}
+            checked={value.kind === "cover"}
+            onChange={(v) => setValue({ ...value, kind: v ? "cover" : "gallery" })}
+          />
+          <Check
+            label={t.published}
+            checked={value.published}
+            onChange={(v) => setValue({ ...value, published: v })}
+          />
+        </div>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/webp,image/avif"
+          ref={input}
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              if (validateImage(file)) {
+                setReplacement(file);
+                setMessage("");
+              } else setMessage(t.imageError);
+            }
+            e.target.value = "";
+          }}
+        />
+        {replacement && (
+          <p className="break-all text-xs text-muted-foreground">{replacement.name}</p>
+        )}
+        {progress !== null && (
+          <progress className="w-full accent-primary" max={100} value={progress} />
+        )}
+        <Message text={message} />
+        <div className="flex flex-wrap gap-2">
+          <Button disabled={busy} type="submit">
+            <Save />
+            {t.save}
+          </Button>
+          <Button
+            disabled={busy}
+            type="button"
+            variant="outline"
+            onClick={() => input.current?.click()}
+          >
+            <RefreshCw />
+            {t.replace}
+          </Button>
+          <Button
+            disabled={busy}
+            type="button"
+            variant="ghost"
+            aria-label={t.delete}
+            title={t.delete}
+            onClick={() => setDeleting(true)}
+          >
+            <Trash2 />
+          </Button>
+        </div>
+      </form>
+      {deleting && (
+        <Modal title={t.confirm} onClose={() => !busy && setDeleting(false)}>
+          <p className="mb-5">{t.deleteNote}</p>
+          <Message text={message} />
+          <div className="flex gap-3">
+            <Button
+              variant="destructive"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  await remove({ data: { id: initial.id } });
+                  setDeleting(false);
+                  await cache.invalidateQueries({ queryKey: ["cms"] });
+                } catch {
+                  setMessage(t.error);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              {t.delete}
+            </Button>
+            <Button variant="outline" disabled={busy} onClick={() => setDeleting(false)}>
+              {t.cancel}
+            </Button>
+          </div>
+        </Modal>
+      )}
+    </article>
+  );
+}

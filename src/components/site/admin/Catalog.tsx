@@ -1,0 +1,221 @@
+import { useState } from "react";
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Save } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cmsQuery } from "@/lib/cms/queries";
+import { saveService, saveMetric } from "@/lib/cms/admin.functions";
+import type { Tables } from "@/integrations/supabase/types";
+import { useAdmin, Field, Check, Message } from "./shared";
+export function Services() {
+  const { data } = useSuspenseQuery(cmsQuery());
+  const { t } = useAdmin();
+  return (
+    <>
+      <h1 className="mb-8 text-3xl">{t.services}</h1>
+      <div className="divide-y divide-border">
+        {data.services.map((s) => (
+          <ServiceEditor key={`${s.id}-${s.updated_at}`} initial={s} />
+        ))}
+      </div>
+    </>
+  );
+}
+function ServiceEditor({ initial }: { initial: Tables<"services"> }) {
+  const { t } = useAdmin();
+  const [value, setValue] = useState(initial);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const save = useServerFn(saveService);
+  const cache = useQueryClient();
+  return (
+    <form
+      className="space-y-5 py-7"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        try {
+          await save({
+            data: {
+              id: value.id as "website",
+              name_tr: value.name_tr,
+              name_en: value.name_en,
+              published: value.published,
+              display_order: value.display_order,
+            },
+          });
+          setMessage(t.saved);
+          await cache.invalidateQueries({ queryKey: ["cms"] });
+        } catch {
+          setMessage(t.error);
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <h2 className="text-xl">{initial.name_en}</h2>
+      <div className="grid gap-5 sm:grid-cols-3">
+        <Field
+          label={t.labelTr}
+          value={value.name_tr}
+          onChange={(v) => setValue({ ...value, name_tr: v })}
+          required
+        />
+        <Field
+          label={t.labelEn}
+          value={value.name_en}
+          onChange={(v) => setValue({ ...value, name_en: v })}
+          required
+        />
+        <Field
+          label={t.order}
+          type="number"
+          value={value.display_order}
+          onChange={(v) => setValue({ ...value, display_order: Number(v) })}
+        />
+      </div>
+      <div className="flex justify-between gap-4">
+        <Check
+          label={t.published}
+          checked={value.published}
+          onChange={(v) => setValue({ ...value, published: v })}
+        />
+        <Button type="submit" disabled={busy}>
+          <Save />
+          {t.save}
+        </Button>
+      </div>
+      <Message text={message} />
+    </form>
+  );
+}
+export function Metrics() {
+  const { data } = useSuspenseQuery(cmsQuery());
+  const { t } = useAdmin();
+  return (
+    <>
+      <h1 className="mb-8 text-3xl">{t.metrics}</h1>
+      <div className="divide-y divide-border">
+        {(["budget", "countries", "projects"] as const).map((id, i) => {
+          const found = data.metrics.find((m) => m.id === id);
+          return (
+            <MetricEditor
+              key={id + (found?.updated_at ?? "")}
+              initial={
+                found ?? {
+                  id,
+                  label_tr:
+                    ["Yönetilen reklam bütçesi", "Ulaşılan ülkeler", "Tamamlanan projeler"][i] ??
+                    "",
+                  label_en:
+                    ["Advertising budget managed", "Countries reached", "Projects completed"][i] ??
+                    "",
+                  value: "",
+                  verified: false,
+                  published: false,
+                  display_order: i,
+                  created_at: "",
+                  updated_at: "",
+                }
+              }
+            />
+          );
+        })}
+      </div>
+    </>
+  );
+}
+function MetricEditor({ initial }: { initial: Tables<"site_metrics"> }) {
+  const { t } = useAdmin();
+  const [value, setValue] = useState(initial);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const cache = useQueryClient();
+  const save = useServerFn(saveMetric);
+  return (
+    <form
+      className="space-y-5 py-7"
+      onSubmit={async (e) => {
+        e.preventDefault();
+        setBusy(true);
+        try {
+          await save({
+            data: {
+              id: value.id as "budget",
+              label_tr: value.label_tr,
+              label_en: value.label_en,
+              value: value.value,
+              verified: value.verified,
+              published: value.published,
+              display_order: value.display_order,
+            },
+          });
+          setMessage(t.saved);
+          await cache.invalidateQueries({ queryKey: ["cms"] });
+        } catch {
+          setMessage(t.error);
+        } finally {
+          setBusy(false);
+        }
+      }}
+    >
+      <h2 className="text-xl">
+        {
+          t[
+            initial.id === "budget"
+              ? "budget"
+              : initial.id === "countries"
+                ? "countries"
+                : "completed"
+          ]
+        }
+      </h2>
+      <div className="grid gap-5 sm:grid-cols-2">
+        <Field
+          label={t.labelTr}
+          value={value.label_tr}
+          onChange={(v) => setValue({ ...value, label_tr: v })}
+          required
+        />
+        <Field
+          label={t.labelEn}
+          value={value.label_en}
+          onChange={(v) => setValue({ ...value, label_en: v })}
+          required
+        />
+        <Field
+          label={t.value}
+          value={value.value}
+          onChange={(v) => setValue({ ...value, value: v })}
+          required
+        />
+        <Field
+          label={t.order}
+          type="number"
+          value={value.display_order}
+          onChange={(v) => setValue({ ...value, display_order: Number(v) })}
+        />
+      </div>
+      <div className="flex flex-wrap gap-6">
+        <Check
+          label={t.verified}
+          checked={value.verified}
+          onChange={(v) =>
+            setValue({ ...value, verified: v, published: v ? value.published : false })
+          }
+        />
+        <Check
+          label={t.published}
+          checked={value.published}
+          disabled={!value.verified}
+          onChange={(v) => setValue({ ...value, published: v })}
+        />
+        <Button type="submit" disabled={busy}>
+          <Save />
+          {t.save}
+        </Button>
+      </div>
+      <Message text={message} />
+    </form>
+  );
+}

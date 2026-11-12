@@ -1,0 +1,386 @@
+import { useState, useEffect } from "react";
+import { useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { Plus, Pencil, Trash2, Save, Star, ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cmsQuery } from "@/lib/cms/queries";
+import { saveProject, deleteProject, type CmsData } from "@/lib/cms/admin.functions";
+import { projectSchema, type ProjectInput } from "@/lib/cms/rules";
+import { Field, Check, Modal, Message, useAdmin } from "./shared";
+export function Projects() {
+  const { data } = useSuspenseQuery(cmsQuery());
+  const { t, locale } = useAdmin();
+  const cache = useQueryClient();
+  const remove = useServerFn(deleteProject);
+  const [query, setQuery] = useState("");
+  const [status, setStatus] = useState("all");
+  const [editing, setEditing] = useState<ProjectInput | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  function open(id?: string) {
+    const p = data.projects.find((p) => p.id === id);
+    setEditing({
+      id: p?.id ?? crypto.randomUUID(),
+      slug: p?.slug ?? "",
+      name: p?.name ?? "",
+      agency: p?.agency ?? "",
+      attribution_pending: p?.attribution_pending ?? false,
+      year_label: p?.year_label ?? "",
+      status: (p?.status ?? "draft") as ProjectInput["status"],
+      featured: p?.featured ?? false,
+      display_order: p?.display_order ?? 0,
+      responsibilities: p?.responsibilities ?? [],
+      external_url: p?.external_url ?? "",
+      links: Array.isArray(p?.links) ? p.links : [],
+      verified_results: Array.isArray(p?.verified_results) ? p.verified_results : [],
+      services: data.assignments
+        .filter((a) => a.project_id === id)
+        .map((a) => a.service_id) as ProjectInput["services"],
+      translations: ["tr", "en"].map((l) => {
+        const tr = data.translations.find((tr) => tr.project_id === id && tr.locale === l);
+        return {
+          locale: l as "tr" | "en",
+          description: tr?.description ?? "",
+          seo_title: tr?.seo_title ?? "",
+          seo_description: tr?.seo_description ?? "",
+          og_title: tr?.og_title ?? "",
+          og_description: tr?.og_description ?? "",
+        };
+      }),
+      expected_updated_at: p?.updated_at ?? null,
+    });
+  }
+  const rows = data.projects.filter(
+    (p) =>
+      (status === "all" || p.status === status) &&
+      `${p.name} ${p.agency}`.toLocaleLowerCase().includes(query.toLocaleLowerCase()),
+  );
+  return (
+    <>
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="mb-2 font-mono text-xs text-primary">02 / {t.projects}</p>
+          <h1 className="text-3xl">
+            {t.projects}
+            <span className="ml-3 text-muted-foreground">{data.projects.length}</span>
+          </h1>
+        </div>
+        <Button onClick={() => open()}>
+          <Plus />
+          {t.newProject}
+        </Button>
+      </header>
+      <div className="mb-6 grid gap-4 sm:grid-cols-2">
+        <Field label={t.search} value={query} onChange={setQuery} />
+        <label className="grid gap-2 text-sm text-muted-foreground">
+          {t.status}
+          <select
+            className="h-9 rounded border border-input bg-background px-3 text-foreground"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            {["all", "draft", "published", "archived"].map((s) => (
+              <option key={s} value={s}>
+                {t[s as "all"]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      <Message text={message} />
+      <div className="divide-y divide-border border-y border-border">
+        {rows.map((p) => (
+          <article key={p.id} className="flex flex-wrap items-center gap-4 py-5">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h2 className="break-words text-lg">{p.name}</h2>
+                {p.featured && <Star className="size-4 shrink-0 text-primary" />}
+              </div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {p.agency} · {p.year_label}
+              </p>
+            </div>
+            <span className="font-mono text-xs text-muted-foreground">
+              {t[p.status as "draft"]}
+            </span>
+            <Button
+              variant="outline"
+              size="icon"
+              title={t.edit}
+              aria-label={`${t.edit} ${p.name}`}
+              onClick={() => open(p.id)}
+            >
+              <Pencil />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              title={t.delete}
+              aria-label={`${t.delete} ${p.name}`}
+              onClick={() => setDeleting(p.id)}
+            >
+              <Trash2 />
+            </Button>
+          </article>
+        ))}
+      </div>
+      {!rows.length && <p className="py-10 text-muted-foreground">{t.empty}</p>}
+      {editing && (
+        <ProjectEditor
+          key={editing.id}
+          initial={editing}
+          data={data}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            setMessage(t.saved);
+            void cache.invalidateQueries({ queryKey: ["cms"] });
+          }}
+        />
+      )}
+      {deleting && (
+        <Modal title={t.confirm} onClose={() => !busy && setDeleting(null)}>
+          <p className="mb-6 text-muted-foreground">
+            {data.projects.find((p) => p.id === deleting)?.name} · {t.deleteNote}
+          </p>
+          <div className="flex gap-3">
+            <Button
+              variant="destructive"
+              disabled={busy}
+              onClick={async () => {
+                setBusy(true);
+                try {
+                  await remove({ data: { id: deleting } });
+                  setDeleting(null);
+                  await cache.invalidateQueries({ queryKey: ["cms"] });
+                } catch {
+                  setMessage(t.error);
+                } finally {
+                  setBusy(false);
+                }
+              }}
+            >
+              <Trash2 />
+              {t.delete}
+            </Button>
+            <Button variant="outline" disabled={busy} onClick={() => setDeleting(null)}>
+              {t.cancel}
+            </Button>
+          </div>
+        </Modal>
+      )}
+    </>
+  );
+}
+function ProjectEditor({
+  initial,
+  data,
+  onClose,
+  onSaved,
+}: {
+  initial: ProjectInput;
+  data: CmsData;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const { t, locale } = useAdmin();
+  const [value, setValue] = useState(initial);
+  const [lang, setLang] = useState<"tr" | "en">("tr");
+  const [results, setResults] = useState(JSON.stringify(initial.verified_results, null, 2));
+  const [links, setLinks] = useState(JSON.stringify(initial.links, null, 2));
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const save = useServerFn(saveProject);
+  const dirty =
+    JSON.stringify(value) !== JSON.stringify(initial) ||
+    results !== JSON.stringify(initial.verified_results, null, 2) ||
+    links !== JSON.stringify(initial.links, null, 2);
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (dirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
+  function close() {
+    if (!busy && (!dirty || window.confirm(t.unsaved))) onClose();
+  }
+  function update<K extends keyof ProjectInput>(key: K, v: ProjectInput[K]) {
+    setValue({ ...value, [key]: v });
+  }
+  const translation = value.translations.find((v) => v.locale === lang);
+  return (
+    <Modal title={initial.expected_updated_at ? initial.name : t.newProject} onClose={close}>
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          setBusy(true);
+          setMessage("");
+          try {
+            const parsed = projectSchema.parse({
+              ...value,
+              links: JSON.parse(links),
+              verified_results: JSON.parse(results),
+            });
+            await save({ data: parsed });
+            onSaved();
+          } catch (e) {
+            setMessage(
+              e instanceof Error && e.message.includes("CMS_CONFLICT")
+                ? t.conflict
+                : e instanceof SyntaxError || (e instanceof Error && e.name === "ZodError")
+                  ? t.invalid
+                  : t.error,
+            );
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        <fieldset disabled={busy} className="space-y-7">
+          <div className="grid gap-5 sm:grid-cols-2">
+            <Field label={t.name} value={value.name} onChange={(v) => update("name", v)} required />
+            <Field label={t.slug} value={value.slug} onChange={(v) => update("slug", v)} required />
+            <Field label={t.agency} value={value.agency} onChange={(v) => update("agency", v)} />
+            <Field
+              label={t.year}
+              value={value.year_label}
+              onChange={(v) => update("year_label", v)}
+            />
+            <Field
+              label={t.order}
+              type="number"
+              value={value.display_order}
+              onChange={(v) => update("display_order", Number(v))}
+            />
+            <Field
+              label={t.url}
+              type="url"
+              value={value.external_url ?? ""}
+              onChange={(v) => update("external_url", v)}
+            />
+          </div>
+          <div className="flex flex-wrap gap-6">
+            <Check
+              label={t.featured}
+              checked={value.featured}
+              onChange={(v) => update("featured", v)}
+            />
+            <Check
+              label={t.pending}
+              checked={value.attribution_pending}
+              onChange={(v) => update("attribution_pending", v)}
+            />
+            <label className="flex items-center gap-3 text-sm">
+              {t.status}
+              <select
+                className="rounded border border-input bg-background p-2"
+                value={value.status}
+                onChange={(e) => update("status", e.target.value as ProjectInput["status"])}
+              >
+                {["draft", "published", "archived"].map((s) => (
+                  <option key={s} value={s}>
+                    {t[s as "draft"]}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <section className="border-t border-border pt-5">
+            <h3 className="mb-4 text-lg">{t.services}</h3>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {data.services.map((s) => (
+                <Check
+                  key={s.id}
+                  label={locale === "tr" ? s.name_tr : s.name_en}
+                  checked={value.services.includes(s.id as ProjectInput["services"][number])}
+                  onChange={(checked) =>
+                    update(
+                      "services",
+                      checked
+                        ? [...value.services, s.id as ProjectInput["services"][number]]
+                        : value.services.filter((v) => v !== s.id),
+                    )
+                  }
+                />
+              ))}
+            </div>
+          </section>
+          <section className="border-t border-border pt-5">
+            <div className="mb-5 flex gap-2">
+              {(["tr", "en"] as const).map((l) => (
+                <Button
+                  type="button"
+                  key={l}
+                  variant={lang === l ? "secondary" : "outline"}
+                  onClick={() => setLang(l)}
+                >
+                  {l.toUpperCase()}
+                </Button>
+              ))}
+            </div>
+            {translation && (
+              <div className="grid gap-5">
+                <Field
+                  label={`${t.description} · ${lang.toUpperCase()}`}
+                  multiline
+                  value={translation.description}
+                  onChange={(v) =>
+                    update(
+                      "translations",
+                      value.translations.map((tr) =>
+                        tr.locale === lang ? { ...tr, description: v } : tr,
+                      ),
+                    )
+                  }
+                />
+                <div className="grid gap-5 sm:grid-cols-2">
+                  {(["seo_title", "seo_description", "og_title", "og_description"] as const).map(
+                    (key, i) => (
+                      <Field
+                        key={key}
+                        label={[t.seoTitle, t.seoDescription, t.ogTitle, t.ogDescription][i] ?? key}
+                        value={translation[key] ?? ""}
+                        onChange={(v) =>
+                          update(
+                            "translations",
+                            value.translations.map((tr) =>
+                              tr.locale === lang ? { ...tr, [key]: v } : tr,
+                            ),
+                          )
+                        }
+                      />
+                    ),
+                  )}
+                </div>
+              </div>
+            )}
+          </section>
+          <Field
+            label={t.responsibilities}
+            multiline
+            value={value.responsibilities.join("\n")}
+            onChange={(v) => update("responsibilities", v.split("\n"))}
+          />
+          <Field label={t.results} multiline value={results} onChange={setResults} />
+          <Field label={t.links} multiline value={links} onChange={setLinks} />
+        </fieldset>
+        <Message text={message} />
+        <div className="sticky bottom-0 mt-6 flex gap-3 border-t border-border bg-card py-4">
+          <Button type="submit" disabled={busy}>
+            <Save />
+            {busy ? t.loading : t.save}
+          </Button>
+          <Button variant="outline" type="button" onClick={close} disabled={busy}>
+            <ArrowLeft />
+            {t.cancel}
+          </Button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
