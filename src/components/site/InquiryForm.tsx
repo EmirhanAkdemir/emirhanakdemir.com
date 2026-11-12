@@ -14,7 +14,7 @@ export function InquiryForm({ fields, submit, demo }: { fields: Field[]; submit:
       }}
     >
       {fields.map((f) => (
-        <Row key={f.id} full={f.full || f.textarea}>
+        <Row key={f.id} full={Boolean(f.full || f.textarea)}>
           <label htmlFor={f.id} className="label-mono text-muted-foreground">{f.label}</label>
           {f.textarea ? (
             <textarea id={f.id} rows={4} className="mt-2 w-full resize-none border-b border-input bg-transparent py-2 text-lg outline-none transition-colors focus:border-primary" />
