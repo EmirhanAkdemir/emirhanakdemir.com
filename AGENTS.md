@@ -32,3 +32,7 @@ use the editor.
 ## Project rules
 - All UI copy lives in src/i18n (tr.ts is the source type, en.ts mirrors it); routes just pass a locale to shared page components in src/components/site — keeps both languages in sync.
 - DJ mode is a `.dj` class that overrides color tokens in src/styles.css — same components, different palette.
+- Phase 1 CMS is normalized PostgreSQL with tool-generated SQL migrations; public project reads remain static until a separate approved cutover, preventing an unverified data-source change.
+- Normalize confirmed service keys in a shared data module, preserving original activities and responsibilities separately; this prevents inference and keeps filters and imports consistent.
+- CMS authorization uses caller-scoped `has_role` with invoker security and read-own role RLS; only trusted SQL provisioning writes roles, avoiding recursive policies and self-promotion.
+- Project files live in private Storage under project-ID folders; both media and project must be published for visitor reads, so drafts cannot leak through a public bucket.
