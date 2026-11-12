@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { Dict } from "@/i18n/tr";
 import { projects, projectCategories, type CategoryKey, type Project } from "@/data/projects";
+import { ProjectFilters } from "./ProjectFilters";
 
 function matches(p: Project, q: string, t: Dict): boolean {
   const haystack = [
@@ -29,12 +30,13 @@ export function ProjectArchive({ t }: { t: Dict }) {
 
   return (
     <div className="col-span-12 flex flex-col gap-8">
-      <ProjectFiltersBar
+      <ProjectFilters
         t={t}
-        category={category}
-        setCategory={setCategory}
+        categories={projectCategories}
+        active={category}
+        onCategory={setCategory}
         query={query}
-        setQuery={setQuery}
+        onQuery={setQuery}
       />
       <p className="label-mono text-muted-foreground" aria-live="polite">
         {t.work.count(filtered.length)}
@@ -74,5 +76,3 @@ export function ProjectArchive({ t }: { t: Dict }) {
     </div>
   );
 }
-
-import { ProjectFilters as ProjectFiltersBar } from "./ProjectFilters";
