@@ -11,8 +11,8 @@ export const en: Dict = {
   hero: {
     index: "Portfolio — 2026",
     role: "Digital Growth & Creative Technology",
-    intro: "I bring strategy, advertising, design and software into one flow to help brands grow digitally.",
-    ctaWork: "View Work",
+    intro: "I combine strategy, advertising, design and technology to build measurable digital experiences for brands.",
+    ctaWork: "Explore My Work",
     ctaContact: "Contact",
     location: "Istanbul, TR",
   },
