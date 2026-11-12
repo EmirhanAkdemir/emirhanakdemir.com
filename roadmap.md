@@ -9,6 +9,7 @@
 - [x] Owner reports first admin provisioned.
 
 # Phase 2 CMS
+- [ ] Investigate and correct Storage path checks; verify anonymous/admin policy access and rerun security scan.
 - [x] Implement secure admin login, session handling, and server-side authorization.
 - [x] Build dashboard, project/bilingual editors, services, metrics, media, and settings.
 - [x] Verify rules, signed-out protection, public parity, and document real-session testing limitations in docs/CMS_PHASE2.md.
