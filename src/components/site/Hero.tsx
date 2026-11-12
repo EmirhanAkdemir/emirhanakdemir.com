@@ -22,7 +22,7 @@ export function Hero({ t }: { t: Dict }) {
         const x = (e.clientX - r.left) / r.width - 0.5;
         const y = (e.clientY - r.top) / r.height - 0.5;
         for (const el of layers) {
-          const d = Number(el.dataset.depth || 0);
+          const d = Number(el.dataset["depth"] || 0);
           el.style.transform = `translate3d(${(x * d).toFixed(1)}px, ${(y * d).toFixed(1)}px, 0)`;
         }
       });
