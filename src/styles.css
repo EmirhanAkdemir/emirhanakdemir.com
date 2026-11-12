@@ -72,6 +72,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
   --color-ivory: var(--ivory);
   --color-ivory-foreground: var(--ivory-foreground);
+  --color-cobalt: var(--cobalt);
   --font-display: "Space Grotesk", ui-sans-serif, sans-serif;
   --font-sans: "DM Sans", ui-sans-serif, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -100,6 +101,7 @@
   --ring: oklch(0.6 0.2 272);
   --ivory: oklch(0.948 0.008 100);
   --ivory-foreground: oklch(0.185 0.012 268);
+  --cobalt: oklch(0.566 0.213 267.5);
   --chart-1: oklch(0.6 0.2 272);
   --chart-2: oklch(0.75 0.018 262);
   --chart-3: oklch(0.948 0.008 100);
@@ -172,6 +174,10 @@
 @keyframes reveal {
   from { opacity: 0; transform: translateY(18px); }
   to { opacity: 1; transform: none; }
+}
+
+@keyframes hero-spin {
+  to { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {

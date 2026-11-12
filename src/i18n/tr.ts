@@ -10,8 +10,8 @@ export const tr = {
   hero: {
     index: "Portfolyo — 2026",
     role: "Dijital Büyüme & Yaratıcı Teknoloji",
-    intro: "Markaların dijitalde büyümesi için strateji, reklam, tasarım ve yazılımı tek bir akışta birleştiriyorum.",
-    ctaWork: "İşleri Gör",
+    intro: "Markalar için strateji, reklam, tasarım ve teknolojiyi bir araya getirerek ölçülebilir dijital deneyimler geliştiriyorum.",
+    ctaWork: "İşlerimi Keşfet",
     ctaContact: "İletişime Geç",
     location: "İstanbul, TR",
   },
