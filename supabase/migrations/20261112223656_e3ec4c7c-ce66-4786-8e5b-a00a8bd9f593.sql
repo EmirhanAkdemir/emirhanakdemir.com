@@ -1,0 +1,1 @@
+DELETE FROM public.projects WHERE id IN ('storage-check-58d58737-public','storage-check-58d58737-draft');
