@@ -113,3 +113,21 @@ finally:
         check("admin deletion verified " + path, response.status_code != 200)
 
 print("Verified", len(checks), "live Storage checks.")
+# Report deliberate publication separately from unauthorized exposure. Reaching
+# this point requires every concrete allow/deny assertion above to have passed.
+print(json.dumps({
+    "intentional_public_access": {
+        "status": "verified",
+        "allowed_fixtures": ["published", "collision"],
+        "requires": ["exact registered path", "published media", "published parent project", "matching project folder"],
+        "audiences": ["anonymous", "member"],
+    },
+    "unauthorized_file_exposure": {
+        "status": "not observed in tested fixtures",
+        "denied_fixtures": ["unpublished", "draft", "unregistered", "outside-folder"],
+        "operations": ["download", "sign", "list", "upload", "replace", "delete"],
+    },
+    "authenticated_admin_access": {"status": "verified", "existing_project_uploads": "allowed"},
+    "passed_checks": len(checks),
+    "scope": "disposable live fixtures; not a guarantee about future policy changes",
+}, indent=2))
