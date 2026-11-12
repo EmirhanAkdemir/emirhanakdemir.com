@@ -14,13 +14,292 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      project_media: {
+        Row: {
+          alt_en: string
+          alt_tr: string
+          created_at: string
+          display_order: number
+          id: string
+          kind: string
+          project_id: string
+          published: boolean
+          storage_path: string
+          updated_at: string
+        }
+        Insert: {
+          alt_en?: string
+          alt_tr?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          kind?: string
+          project_id: string
+          published?: boolean
+          storage_path: string
+          updated_at?: string
+        }
+        Update: {
+          alt_en?: string
+          alt_tr?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          kind?: string
+          project_id?: string
+          published?: boolean
+          storage_path?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_media_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_services: {
+        Row: {
+          created_at: string
+          project_id: string
+          service_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          project_id: string
+          service_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          project_id?: string
+          service_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_services_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_services_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_translations: {
+        Row: {
+          created_at: string
+          description: string
+          locale: string
+          og_description: string | null
+          og_title: string | null
+          project_id: string
+          seo_description: string | null
+          seo_title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          locale: string
+          og_description?: string | null
+          og_title?: string | null
+          project_id: string
+          seo_description?: string | null
+          seo_title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          locale?: string
+          og_description?: string | null
+          og_title?: string | null
+          project_id?: string
+          seo_description?: string | null
+          seo_title?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_translations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          agency: string
+          attribution_pending: boolean
+          created_at: string
+          display_order: number
+          external_url: string | null
+          featured: boolean
+          id: string
+          industry: string | null
+          links: Json
+          name: string
+          original_services: string[]
+          responsibilities: string[]
+          slug: string
+          status: string
+          thumbnail_url: string | null
+          updated_at: string
+          verified_results: Json
+          year_label: string
+        }
+        Insert: {
+          agency?: string
+          attribution_pending?: boolean
+          created_at?: string
+          display_order?: number
+          external_url?: string | null
+          featured?: boolean
+          id: string
+          industry?: string | null
+          links?: Json
+          name: string
+          original_services?: string[]
+          responsibilities?: string[]
+          slug: string
+          status?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          verified_results?: Json
+          year_label?: string
+        }
+        Update: {
+          agency?: string
+          attribution_pending?: boolean
+          created_at?: string
+          display_order?: number
+          external_url?: string | null
+          featured?: boolean
+          id?: string
+          industry?: string | null
+          links?: Json
+          name?: string
+          original_services?: string[]
+          responsibilities?: string[]
+          slug?: string
+          status?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          verified_results?: Json
+          year_label?: string
+        }
+        Relationships: []
+      }
+      services: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          name_en: string
+          name_tr: string
+          published: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id: string
+          name_en: string
+          name_tr: string
+          published?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          name_en?: string
+          name_tr?: string
+          published?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      site_metrics: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          label_en: string
+          label_tr: string
+          published: boolean
+          updated_at: string
+          value: string
+          verified: boolean
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id: string
+          label_en: string
+          label_tr: string
+          published?: boolean
+          updated_at?: string
+          value: string
+          verified?: boolean
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          label_en?: string
+          label_tr?: string
+          published?: boolean
+          updated_at?: string
+          value?: string
+          verified?: boolean
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
