@@ -9,6 +9,8 @@
 - [x] Owner reports first admin provisioned.
 
 # Phase 2 CMS
+- [x] Recheck publication-aware Storage policy and inventory; separate intentional access from unauthorized exposure in the verification report.
+- [ ] Publication-aware Security panel classification: blocked by scanner controls; deep security scan pending.
 - [x] Correct Storage path checks; 87 live anonymous/member/admin checks and CMS upload passed; rescan retains the intentional public-read warning.
 - [x] Implement secure admin login, session handling, and server-side authorization.
 - [x] Build dashboard, project/bilingual editors, services, metrics, media, and settings.

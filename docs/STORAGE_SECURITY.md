@@ -20,6 +20,18 @@ The migration qualifies all three outer references as `storage.objects.name`. Pu
 
 ## Scope
 
+## Publication-aware scan report — 2026-11-12 22:41 UTC
+
+**Intentional public access (expected):** anonymous visitors and authenticated non-admins may read an image only when its exact Storage path is registered in `project_media`, that media row is published, its parent project has status `published`, and the file is inside that project's ID folder. Ownership is not the access criterion for these portfolio images. Admin-only uploads and edits remain separate policies.
+
+**Unauthorized file exposure:** not observed in the previous 87 live anonymous/member/admin checks. Those checks explicitly denied unpublished media, media on draft projects, unregistered files, and outside-folder files, including the original name-collision counterexample. The verification script now prints separate structured results for intentional public access, unauthorized exposure, and authenticated admin access after all assertions pass; it fails rather than reporting success if any access assertion fails.
+
+**Current recheck:** the live policy definitions still contain all four publication conditions and the separate caller-scoped admin rules. The bucket is still private; the current inventory contains zero objects (zero intentionally public objects and zero nonpublic objects). No disposable sessions or fixture uploads were recreated for this recheck; the 87 HTTP checks are prior evidence, not a new test run.
+
+**Scanner limitation:** the quick scan rerun at 22:41 UTC still classifies the owner-unbound publication policy as Critical. Available scanner controls cannot rewrite that rule, its severity, or create a separate informational finding. The finding is therefore left active, not marked fixed or ignored. A deep security scan has been started and its result is pending; this report does not claim the Security panel has been corrected or the project is clean. The unrelated leaked-password-protection informational finding remains.
+
+## Earlier verification scope
+
 Final inventory matches the initial state: 18 projects, zero media/objects, private bucket, original sole administrator. The quick rescan at 2026-11-12 22:37 UTC still reports the critical owner-unbound Storage rule because published images intentionally have no uploader-only restriction; it also reports disabled leaked-password protection. The finding was left active, not ignored or marked fixed. Verified access behavior is corrected, but the Security panel is not cleared.
 
 Public website remains on its existing static source. No personal content, public signup settings, CMS forms, or generated clients were changed.
