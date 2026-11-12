@@ -1,0 +1,2 @@
+ALTER FUNCTION public.has_role(uuid,text) SECURITY INVOKER;
+COMMENT ON FUNCTION public.has_role(uuid,text) IS 'Caller-scoped admin check. Reads only the caller own role through non-recursive RLS; no privilege elevation.';
