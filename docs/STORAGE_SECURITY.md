@@ -20,6 +20,8 @@ The migration qualifies all three outer references as `storage.objects.name`. Pu
 
 ## Scope
 
+Final inventory matches the initial state: 18 projects, zero media/objects, private bucket, original sole administrator. The quick rescan at 2026-11-12 22:37 UTC still reports the critical owner-unbound Storage rule because published images intentionally have no uploader-only restriction; it also reports disabled leaked-password protection. The finding was left active, not ignored or marked fixed. Verified access behavior is corrected, but the Security panel is not cleared.
+
 Public website remains on its existing static source. No personal content, public signup settings, CMS forms, or generated clients were changed.
 The storage scanner may still flag intentional owner-unbound public reads; restricting published portfolio images to their uploader would break the requested public access. Do not suppress this critical finding automatically.
 Existing unrelated warnings concern execution grants on the event-trigger function and disabled leaked-password protection.
