@@ -1,9 +1,64 @@
-import { describe,it,expect } from 'vitest';
-import {canAdmin,metricVisible,validateImage,projectSchema,serviceIds} from '@/lib/cms/rules';
-describe('CMS access and publication rules',()=>{
- it('requires an explicit true admin authorization',()=>{expect(canAdmin(true)).toBe(true);for(const value of [false,null,undefined,'admin','true',1])expect(canAdmin(value)).toBe(false);});
- it('shows only verified and explicitly published figures',()=>{expect(metricVisible({verified:true,published:true})).toBe(true);expect(metricVisible({verified:false,published:true})).toBe(false);expect(metricVisible({verified:true,published:false})).toBe(false);});
- it('restricts files to image formats and 10MB',()=>{expect(validateImage({size:1024,type:'image/jpeg'})).toBe(true);expect(validateImage({size:10*1024*1024+1,type:'image/png'})).toBe(false);expect(validateImage({size:1024,type:'image/svg+xml'})).toBe(false);});
- it('uses exactly the six service-only categories',()=>{expect(serviceIds).toEqual(['website','googleAds','metaAds','seo','automation','customSoftware']);});
- it('requires separate Turkish and English project translations',()=>{const project={id:'draft-test',slug:'draft-test',name:'Draft test',agency:'',attribution_pending:false,year_label:'',status:'draft',featured:false,display_order:0,responsibilities:[],external_url:'',links:[],verified_results:[],services:['website'],expected_updated_at:null,translations:['tr','en'].map(locale=>({locale,description:locale==='tr'?'Türkçe':'English',seo_title:'',seo_description:'',og_title:'',og_description:''}))};expect(projectSchema.parse(project).status).toBe('draft');expect(projectSchema.safeParse({...project,translations:[project.translations[0],project.translations[0]]}).success).toBe(false);expect(projectSchema.safeParse({...project,services:['realestate']}).success).toBe(false);});
+import { describe, it, expect } from "vitest";
+import { canAdmin, metricVisible, validateImage, projectSchema, serviceIds } from "@/lib/cms/rules";
+describe("CMS access and publication rules", () => {
+  it("requires an explicit true admin authorization", () => {
+    expect(canAdmin(true)).toBe(true);
+    for (const value of [false, null, undefined, "admin", "true", 1])
+      expect(canAdmin(value)).toBe(false);
+  });
+  it("shows only verified and explicitly published figures", () => {
+    expect(metricVisible({ verified: true, published: true })).toBe(true);
+    expect(metricVisible({ verified: false, published: true })).toBe(false);
+    expect(metricVisible({ verified: true, published: false })).toBe(false);
+  });
+  it("restricts files to image formats and 10MB", () => {
+    expect(validateImage({ size: 1024, type: "image/jpeg" })).toBe(true);
+    expect(validateImage({ size: 10 * 1024 * 1024 + 1, type: "image/png" })).toBe(false);
+    expect(validateImage({ size: 1024, type: "image/svg+xml" })).toBe(false);
+  });
+  it("uses exactly the six service-only categories", () => {
+    expect(serviceIds).toEqual([
+      "website",
+      "googleAds",
+      "metaAds",
+      "seo",
+      "automation",
+      "customSoftware",
+    ]);
+  });
+  it("requires separate Turkish and English project translations", () => {
+    const project = {
+      id: "draft-test",
+      slug: "draft-test",
+      name: "Draft test",
+      agency: "",
+      attribution_pending: false,
+      year_label: "",
+      status: "draft",
+      featured: false,
+      display_order: 0,
+      responsibilities: [],
+      external_url: "",
+      links: [],
+      verified_results: [],
+      services: ["website"],
+      expected_updated_at: null,
+      translations: ["tr", "en"].map((locale) => ({
+        locale,
+        description: locale === "tr" ? "Türkçe" : "English",
+        seo_title: "",
+        seo_description: "",
+        og_title: "",
+        og_description: "",
+      })),
+    };
+    expect(projectSchema.parse(project).status).toBe("draft");
+    expect(
+      projectSchema.safeParse({
+        ...project,
+        translations: [project.translations[0], project.translations[0]],
+      }).success,
+    ).toBe(false);
+    expect(projectSchema.safeParse({ ...project, services: ["realestate"] }).success).toBe(false);
+  });
 });

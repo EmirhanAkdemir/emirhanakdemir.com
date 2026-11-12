@@ -1,7 +1,58 @@
-import { Link } from '@tanstack/react-router';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { ArrowUpRight, FolderOpen, FileText, Star, Image } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cmsQuery } from '@/lib/cms/queries';
-import { useAdmin } from './shared';
-export function Overview(){const {data}=useSuspenseQuery(cmsQuery());const {t}=useAdmin();const stats=[[t.total,data.projects.length,FolderOpen],[t.draft,data.projects.filter(p=>p.status==='draft').length,FileText],[t.featured,data.projects.filter(p=>p.featured).length,Star],[t.mediaCount,data.media.length,Image]] as const;return <><p className="mb-3 font-mono text-xs text-primary">EMIRHAN AKDEMIR / CMS</p><h1 className="mb-10 text-4xl">{t.dashboard}</h1><div className="mb-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">{stats.map(([label,value,Icon])=><article key={label} className="border-l border-border pl-5"><Icon className="mb-4 size-5 text-primary"/><p className="font-display text-4xl">{value}</p><p className="mt-2 text-sm text-muted-foreground">{label}</p></article>)}</div><section className="border-t border-border pt-7"><div className="mb-6 flex flex-wrap items-center justify-between gap-4"><h2 className="text-2xl">{t.projects}</h2><Button asChild variant="outline"><Link to="/admin/projects">{t.viewProjects}<ArrowUpRight/></Link></Button></div><div className="divide-y divide-border">{data.projects.slice(0,8).map((p,i)=><div key={p.id} className="flex items-center gap-4 py-5"><span className="font-mono text-xs text-primary">{String(i+1).padStart(2,'0')}</span><div className="min-w-0 flex-1"><p className="break-words font-display text-lg">{p.name}</p><p className="text-sm text-muted-foreground">{p.agency}</p></div><span className="font-mono text-xs text-muted-foreground">{t[p.status as 'draft']}</span></div>)}</div></section></>;}
+import { Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { ArrowUpRight, FolderOpen, FileText, Star, Image } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cmsQuery } from "@/lib/cms/queries";
+import { useAdmin } from "./shared";
+export function Overview() {
+  const { data } = useSuspenseQuery(cmsQuery());
+  const { t } = useAdmin();
+  const stats = [
+    [t.total, data.projects.length, FolderOpen],
+    [t.draft, data.projects.filter((p) => p.status === "draft").length, FileText],
+    [t.featured, data.projects.filter((p) => p.featured).length, Star],
+    [t.mediaCount, data.media.length, Image],
+  ] as const;
+  return (
+    <>
+      <p className="mb-3 font-mono text-xs text-primary">EMIRHAN AKDEMIR / CMS</p>
+      <h1 className="mb-10 text-4xl">{t.dashboard}</h1>
+      <div className="mb-12 grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+        {stats.map(([label, value, Icon]) => (
+          <article key={label} className="border-l border-border pl-5">
+            <Icon className="mb-4 size-5 text-primary" />
+            <p className="font-display text-4xl">{value}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{label}</p>
+          </article>
+        ))}
+      </div>
+      <section className="border-t border-border pt-7">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <h2 className="text-2xl">{t.projects}</h2>
+          <Button asChild variant="outline">
+            <Link to="/admin/projects">
+              {t.viewProjects}
+              <ArrowUpRight />
+            </Link>
+          </Button>
+        </div>
+        <div className="divide-y divide-border">
+          {data.projects.slice(0, 8).map((p, i) => (
+            <div key={p.id} className="flex items-center gap-4 py-5">
+              <span className="font-mono text-xs text-primary">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="break-words font-display text-lg">{p.name}</p>
+                <p className="text-sm text-muted-foreground">{p.agency}</p>
+              </div>
+              <span className="font-mono text-xs text-muted-foreground">
+                {t[p.status as "draft"]}
+              </span>
+            </div>
+          ))}
+        </div>
+      </section>
+    </>
+  );
+}
