@@ -109,7 +109,7 @@ finally:
                                json={"prefixes": created}, timeout=30)
     response.raise_for_status()
     for path in created:
-        response = requests.get(root + "/object/project-images/" + quote(path), headers=sessions["admin"], timeout=30)
+        response = requests.get(root + "/object/project-images/" + quote(path) + "?verification=deleted-" + os.urandom(8).hex(), headers=sessions["admin"], timeout=30)
         check("admin deletion verified " + path, response.status_code != 200)
 
 print("Verified", len(checks), "live Storage checks.")
