@@ -1,10 +1,13 @@
 import { createServerFn, createMiddleware } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { setResponseHeader } from "@tanstack/react-start/server";
+import type { Json } from "@/integrations/supabase/types";
 import { projectSchema, canAdmin, serviceIds } from "./rules";
 const admin = createMiddleware({ type: "function" })
   .middleware([requireSupabaseAuth])
   .server(async ({ context, next }) => {
+    setResponseHeader("Cache-Control", "private, no-store");
     const { data, error } = await context.supabase.rpc("has_role", {
       _user_id: context.userId,
       _role: "admin",
@@ -46,8 +49,8 @@ export const saveProject = createServerFn({ method: "POST" })
     const db = context.supabase;
     // Atomic invoker RPC retains RLS, checks revision, and writes both locales and associations together.
     const result = await db.rpc(
-      "cms_save_project" as never,
-      { payload: { ...project, services, translations, expected_updated_at } } as never,
+      "cms_save_project",
+      { payload: { ...project, services, translations, expected_updated_at } as Json },
     );
     if (result.error)
       throw new Error(
@@ -125,7 +128,7 @@ export const saveMedia = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data, context }) => {
-    const r = await context.supabase.rpc("cms_save_media" as never, { payload: data } as never);
+    const r = await context.supabase.rpc("cms_save_media", { payload: data });
     if (r.error) throw new Error("CMS_SAVE_FAILED");
     return { ok: true };
   });
