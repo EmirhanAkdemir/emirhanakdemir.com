@@ -36,3 +36,6 @@ use the editor.
 - Normalize confirmed service keys in a shared data module, preserving original activities and responsibilities separately; this prevents inference and keeps filters and imports consistent.
 - CMS authorization uses caller-scoped `has_role` with invoker security and read-own role RLS; only trusted SQL provisioning writes roles, avoiding recursive policies and self-promotion.
 - Project files live in private Storage under project-ID folders; both media and project must be published for visitor reads, so drafts cannot leak through a public bucket.
+- Admin CMS server functions require caller-scoped admin middleware and RLS; atomic invoker RPCs save project translations/assignments and cover selection without privileged clients or partial writes.
+- Admin screens live under the client-only authenticated gate; public admin login redirects only after real user and role validation, and one root auth listener owns session invalidation.
+- Admin forms retain loaded revisions and preserve unedited source metadata; storage uploads use unique paths and short-lived admin-only previews to avoid replacing cached published images.
