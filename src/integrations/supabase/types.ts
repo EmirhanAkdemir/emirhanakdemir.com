@@ -299,6 +299,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cms_save_media: { Args: { payload: Json }; Returns: undefined }
+      cms_save_project: { Args: { payload: Json }; Returns: undefined }
       has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
     }
     Enums: {
