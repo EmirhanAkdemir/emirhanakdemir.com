@@ -47,6 +47,15 @@ export const en: Dict = {
     count: (n: number) => `${n} projects`,
     visit: "Visit site",
     pending: "Attribution to be verified",
+    serviceFilter: "Services",
+    portfolioServices: {
+      website: "Website Design & Development",
+      googleAds: "Google Ads",
+      metaAds: "Meta Ads",
+      seo: "SEO",
+      automation: "Marketing Automation",
+      customSoftware: "Custom Software",
+    },
     categories: {
       web: "Web",
       ecommerce: "E-commerce",

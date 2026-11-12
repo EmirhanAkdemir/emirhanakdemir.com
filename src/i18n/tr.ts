@@ -46,6 +46,15 @@ export const tr = {
     count: (n: number) => `${n} proje`,
     visit: "Siteyi ziyaret et",
     pending: "Atıf doğrulanacak",
+    serviceFilter: "Hizmetler",
+    portfolioServices: {
+      website: "Web Tasarım & Geliştirme",
+      googleAds: "Google Ads",
+      metaAds: "Meta Ads",
+      seo: "SEO",
+      automation: "Pazarlama Otomasyonu",
+      customSoftware: "Özel Yazılım",
+    },
     categories: {
       web: "Web",
       ecommerce: "E-ticaret",
