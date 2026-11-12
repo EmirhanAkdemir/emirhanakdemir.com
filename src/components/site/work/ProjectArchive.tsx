@@ -1,41 +1,40 @@
 import { useMemo, useState } from "react";
 import type { Dict } from "@/i18n/tr";
 import type { Locale } from "@/i18n";
-import { projects, projectCategories, type CategoryKey, type Project } from "@/data/projects";
+import { projects, type Project } from "@/data/projects";
+import { portfolioServices, servicesForProject, filterPortfolioProjects, type PortfolioService } from "@/data/portfolio-services";
 import { ProjectFilters } from "./ProjectFilters";
 
-function matches(p: Project, q: string, t: Dict): boolean {
-  const haystack = [
+function describe(p: Project, t: Dict): string {
+  return [
     p.name,
     p.context,
     p.yearLabel,
     t.work.categories[p.category],
     ...p.services.map((s) => t.work.services[s]),
+    ...servicesForProject(p).map((s) => t.work.portfolioServices[s]),
     p.description[t.locale as Locale],
   ]
-    .join(" ")
-    .toLowerCase();
-  return haystack.includes(q);
+    .join(" ");
 }
 
-/** Full archive: all records, category filtering and search.
+/** Full archive: all records, confirmed service filtering and search.
  *  Works without any animation; rows link out only when a real URL exists. */
 export function ProjectArchive({ t }: { t: Dict }) {
-  const [category, setCategory] = useState<CategoryKey | null>(null);
+  const [service, setService] = useState<PortfolioService | null>(null);
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return projects.filter((p) => (!category || p.category === category) && (!q || matches(p, q, t)));
-  }, [category, query, t]);
+    return filterPortfolioProjects(projects, service, query, (p) => describe(p, t));
+  }, [service, query, t]);
 
   return (
     <div className="col-span-12 flex flex-col gap-8">
       <ProjectFilters
         t={t}
-        categories={projectCategories}
-        active={category}
-        onCategory={setCategory}
+        services={portfolioServices}
+        active={service}
+        onService={setService}
         query={query}
         onQuery={setQuery}
       />
