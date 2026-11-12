@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Dict } from "@/i18n/tr";
+import type { Locale } from "@/i18n";
 import { projects, projectCategories, type CategoryKey, type Project } from "@/data/projects";
 import { ProjectFilters } from "./ProjectFilters";
 
@@ -10,7 +11,7 @@ function matches(p: Project, q: string, t: Dict): boolean {
     p.yearLabel,
     t.work.categories[p.category],
     ...p.services.map((s) => t.work.services[s]),
-    p.description[t.locale],
+    p.description[t.locale as Locale],
   ]
     .join(" ")
     .toLowerCase();

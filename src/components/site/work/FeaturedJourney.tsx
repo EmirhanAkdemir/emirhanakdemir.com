@@ -20,7 +20,7 @@ export function FeaturedJourney({ t }: { t: Dict }) {
   return (
     <>
       {featuredProjects.map((p, i) => {
-        const slot = slots[i % slots.length];
+        const slot = slots[i % slots.length] ?? { ratio: "aspect-[16/9]", span: "" };
         return <ProjectCard key={p.id} project={p} index={i} t={t} ratio={slot.ratio} className={slot.span} />;
       })}
     </>

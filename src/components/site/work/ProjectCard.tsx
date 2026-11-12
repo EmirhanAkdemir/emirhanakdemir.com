@@ -1,4 +1,5 @@
 import type { Dict } from "@/i18n/tr";
+import type { Locale } from "@/i18n";
 import type { Project } from "@/data/projects";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +14,7 @@ interface ProjectCardProps {
 /** Editorial card for the featured journey. Structured so a future
  *  scroll-linked perspective layer can wrap the frame without refactors. */
 export function ProjectCard({ project, index, t, ratio = "aspect-[16/9]", className }: ProjectCardProps) {
-  const locale = t.locale;
+  const locale = t.locale as Locale;
   const num = String(index + 1).padStart(2, "0");
   const services = project.services.map((s) => t.work.services[s]).join(" · ");
 
