@@ -1,0 +1,13 @@
+import { createContext, useContext, type ReactNode } from 'react';
+import { getDict, pageHead, type Locale } from '@/i18n';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
+export const AdminLocale = createContext<{locale:Locale;setLocale:(v:Locale)=>void}>({locale:'tr',setLocale:()=>{}});
+export function useAdmin(){const value=useContext(AdminLocale);return {...value,t:getDict(value.locale).admin};}
+export function adminHead(section:string){return {...pageHead(`${section} — Emirhan Akdemir CMS`,'Private portfolio content administration for Emirhan Akdemir.','tr'),meta:[...pageHead(`${section} — Emirhan Akdemir CMS`,'Private portfolio content administration for Emirhan Akdemir.','tr').meta,{name:'robots',content:'noindex, nofollow'}]};}
+export function Field({label,value,onChange,multiline=false,type='text',required=false,disabled=false}:{label:string;value:string|number;onChange:(v:string)=>void;multiline?:boolean;type?:string;required?:boolean;disabled?:boolean}){return <label className="grid gap-2 text-sm text-muted-foreground"><span>{label}</span>{multiline?<Textarea className="min-h-28 text-foreground" value={value} onChange={e=>onChange(e.target.value)} required={required} disabled={disabled}/>:<Input className="text-foreground" type={type} value={value} onChange={e=>onChange(e.target.value)} required={required} disabled={disabled}/>}</label>;}
+export function Check({label,checked,onChange,disabled=false}:{label:string;checked:boolean;onChange:(v:boolean)=>void;disabled?:boolean}){return <label className="flex items-center gap-3 text-sm"><input className="size-4 accent-primary" type="checkbox" checked={checked} onChange={e=>onChange(e.target.checked)} disabled={disabled}/>{label}</label>;}
+export function Message({text}:{text:string}){return text?<p role="status" className="my-4 border-l-2 border-primary bg-muted px-4 py-3 text-sm">{text}</p>:null;}
+export function Modal({title,children,onClose}:{title:string;children:ReactNode;onClose:()=>void}){const {t}=useAdmin();return <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/90 p-4" onClick={onClose}><section role="dialog" aria-modal="true" aria-label={title} className="max-h-[90dvh] w-full max-w-4xl overflow-y-auto rounded border border-border bg-card p-5 md:p-8" onClick={e=>e.stopPropagation()}><header className="mb-6 flex items-center justify-between gap-4"><h2 className="text-2xl">{title}</h2><Button variant="ghost" size="icon" aria-label={t.cancel} title={t.cancel} onClick={onClose}><X/></Button></header>{children}</section></div>;}
