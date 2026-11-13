@@ -10,6 +10,8 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Netlify sets NETLIFY=true during its builds; Lovable retains its managed target.
+  nitro: process.env["NETLIFY"] === "true" ? { preset: "netlify" } : {},
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this

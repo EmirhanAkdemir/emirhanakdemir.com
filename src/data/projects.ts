@@ -1,6 +1,6 @@
 /*
- * Centralized, typed project dataset — the single source of truth for
- * Selected Work / Project Journey and the Project Archive.
+ * Original migration reference and test fixture only.
+ * Public portfolio content is read live from Supabase, never from this dataset.
  *
  * Rules: no invented links, outcomes, screenshots, testimonials or
  * achievements. Unknown data stays empty or is explicitly marked pending.

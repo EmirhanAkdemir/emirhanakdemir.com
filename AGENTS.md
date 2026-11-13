@@ -32,7 +32,7 @@ use the editor.
 ## Project rules
 - All UI copy lives in src/i18n (tr.ts is the source type, en.ts mirrors it); routes just pass a locale to shared page components in src/components/site — keeps both languages in sync.
 - DJ mode is a `.dj` class that overrides color tokens in src/styles.css — same components, different palette.
-- Phase 1 CMS is normalized PostgreSQL with tool-generated SQL migrations; public project reads remain static until a separate approved cutover, preventing an unverified data-source change.
+- Public portfolio reads use anonymous publishable-key Supabase server functions and per-request Query caches; the static dataset is migration/test reference only, so admin sessions cannot leak drafts or compete with live content.
 - Normalize confirmed service keys in a shared data module, preserving original activities and responsibilities separately; this prevents inference and keeps filters and imports consistent.
 - CMS authorization uses caller-scoped `has_role` with invoker security and read-own role RLS; only trusted SQL provisioning writes roles, avoiding recursive policies and self-promotion.
 - Project files live in private Storage under project-ID folders; both media and project must be published for visitor reads, so drafts cannot leak through a public bucket.
@@ -40,3 +40,6 @@ use the editor.
 - Admin CMS server functions require caller-scoped admin middleware and RLS; atomic invoker RPCs save project translations/assignments and cover selection without privileged clients or partial writes.
 - Admin screens live under the client-only authenticated gate; public admin login redirects only after real user and role validation, and one root auth listener owns session invalidation.
 - Admin forms retain loaded revisions and preserve unedited source metadata; storage uploads use unique paths and short-lived admin-only previews to avoid replacing cached published images.
+- Public project media uses short-lived anonymous Storage signed URLs renewed by Query; only registered published media in published project folders is eligible, preserving private-bucket RLS.
+- Public filter state lives in validated URL search parameters; bilingual project detail routes SSR live content and localized metadata for portable, indexable hosting.
+- Independent Netlify builds select Nitro's netlify preset via NETLIFY=true; live portfolio routes stay request-rendered rather than prerendered so edits need no deployment.

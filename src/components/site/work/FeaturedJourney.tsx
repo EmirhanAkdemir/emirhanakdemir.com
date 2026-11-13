@@ -1,5 +1,5 @@
 import type { Dict } from "@/i18n/tr";
-import { featuredProjects } from "@/data/projects";
+import type { PublicProject } from "@/lib/portfolio/model";
 import { ProjectCard } from "./ProjectCard";
 
 /** Editorial staggered layout for the 8 featured projects.
@@ -16,10 +16,10 @@ const slots: { ratio: string; span: string }[] = [
   { ratio: "aspect-[16/8]", span: "md:col-span-10 md:col-start-2" },
 ];
 
-export function FeaturedJourney({ t }: { t: Dict }) {
+export function FeaturedJourney({ t, projects }: { t: Dict; projects: PublicProject[] }) {
   return (
     <>
-      {featuredProjects.map((p, i) => {
+      {projects.map((p, i) => {
         const slot = slots[i % slots.length] ?? { ratio: "aspect-[16/9]", span: "" };
         return <ProjectCard key={p.id} project={p} index={i} t={t} ratio={slot.ratio} className={slot.span} />;
       })}
