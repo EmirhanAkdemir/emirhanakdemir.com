@@ -15,4 +15,10 @@
 - [x] Implement secure admin login, session handling, and server-side authorization.
 - [x] Build dashboard, project/bilingual editors, services, metrics, media, and settings.
 - [x] Verify rules, signed-out protection, public parity, and document real-session testing limitations in docs/CMS_PHASE2.md.
-- [ ] Real-admin sign-in, draft CRUD, and media verification (external session unavailable to automated checks).
+- [x] Owner reports successful admin CMS saves to external Supabase.
+
+# Public CMS cutover
+- [ ] Connect public projects, translations, confirmed services and published private-bucket images to anonymous live reads.
+- [ ] Preserve Journey/List designs, URL filters, loading/error/empty states and bilingual search-indexable detail pages.
+- [ ] Verify live Turkish update, unchanged English, 18 published projects, filters/search and publication boundaries without changing existing data.
+- [ ] Document refresh freshness and independent hosting requirements.
