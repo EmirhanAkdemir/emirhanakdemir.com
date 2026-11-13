@@ -42,3 +42,4 @@ use the editor.
 - Admin forms retain loaded revisions and preserve unedited source metadata; storage uploads use unique paths and short-lived admin-only previews to avoid replacing cached published images.
 - Public project media uses short-lived anonymous Storage signed URLs renewed by Query; only registered published media in published project folders is eligible, preserving private-bucket RLS.
 - Public filter state lives in validated URL search parameters; bilingual project detail routes SSR live content and localized metadata for portable, indexable hosting.
+- Independent Netlify builds select Nitro's netlify preset via NETLIFY=true; live portfolio routes stay request-rendered rather than prerendered so edits need no deployment.
