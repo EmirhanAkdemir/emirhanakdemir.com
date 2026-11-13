@@ -16,12 +16,14 @@ import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/
 import { Route as AdminLoginRouteImport } from './routes/admin.login'
 import { Route as EnIndexRouteImport } from './routes/en.index'
 import { Route as EnDjRouteImport } from './routes/en.dj'
+import { Route as ProjectsSlugRouteImport } from './routes/projects.$slug'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedAdminMediaRouteImport } from './routes/_authenticated/admin.media'
 import { Route as AuthenticatedAdminMetricsRouteImport } from './routes/_authenticated/admin.metrics'
 import { Route as AuthenticatedAdminProjectsRouteImport } from './routes/_authenticated/admin.projects'
 import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated/admin.services'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
+import { Route as EnProjectsSlugRouteImport } from './routes/en.projects.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -55,6 +57,11 @@ const EnIndexRoute = EnIndexRouteImport.update({
 const EnDjRoute = EnDjRouteImport.update({
   id: '/en/dj',
   path: '/en/dj',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsSlugRoute = ProjectsSlugRouteImport.update({
+  id: '/projects/$slug',
+  path: '/projects/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -91,6 +98,11 @@ const AuthenticatedAdminSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const EnProjectsSlugRoute = EnProjectsSlugRouteImport.update({
+  id: '/en/projects/$slug',
+  path: '/en/projects/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -98,12 +110,14 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/en/dj': typeof EnDjRoute
+  '/projects/$slug': typeof ProjectsSlugRoute
   '/en/': typeof EnIndexRoute
   '/admin/media': typeof AuthenticatedAdminMediaRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/projects': typeof AuthenticatedAdminProjectsRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/en/projects/$slug': typeof EnProjectsSlugRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -111,12 +125,14 @@ export interface FileRoutesByTo {
   '/dj': typeof DjRoute
   '/admin/login': typeof AdminLoginRoute
   '/en/dj': typeof EnDjRoute
+  '/projects/$slug': typeof ProjectsSlugRoute
   '/en': typeof EnIndexRoute
   '/admin/media': typeof AuthenticatedAdminMediaRoute
   '/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/admin/projects': typeof AuthenticatedAdminProjectsRoute
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/en/projects/$slug': typeof EnProjectsSlugRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRoutesById {
@@ -127,12 +143,14 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/admin/login': typeof AdminLoginRoute
   '/en/dj': typeof EnDjRoute
+  '/projects/$slug': typeof ProjectsSlugRoute
   '/en/': typeof EnIndexRoute
   '/_authenticated/admin/media': typeof AuthenticatedAdminMediaRoute
   '/_authenticated/admin/metrics': typeof AuthenticatedAdminMetricsRoute
   '/_authenticated/admin/projects': typeof AuthenticatedAdminProjectsRoute
   '/_authenticated/admin/services': typeof AuthenticatedAdminServicesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
+  '/en/projects/$slug': typeof EnProjectsSlugRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -143,12 +161,14 @@ export interface FileRouteTypes {
     | '/admin'
     | '/admin/login'
     | '/en/dj'
+    | '/projects/$slug'
     | '/en/'
     | '/admin/media'
     | '/admin/metrics'
     | '/admin/projects'
     | '/admin/services'
     | '/admin/settings'
+    | '/en/projects/$slug'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -156,12 +176,14 @@ export interface FileRouteTypes {
     | '/dj'
     | '/admin/login'
     | '/en/dj'
+    | '/projects/$slug'
     | '/en'
     | '/admin/media'
     | '/admin/metrics'
     | '/admin/projects'
     | '/admin/services'
     | '/admin/settings'
+    | '/en/projects/$slug'
     | '/admin'
   id:
     | '__root__'
@@ -171,12 +193,14 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/admin/login'
     | '/en/dj'
+    | '/projects/$slug'
     | '/en/'
     | '/_authenticated/admin/media'
     | '/_authenticated/admin/metrics'
     | '/_authenticated/admin/projects'
     | '/_authenticated/admin/services'
     | '/_authenticated/admin/settings'
+    | '/en/projects/$slug'
     | '/_authenticated/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -186,7 +210,9 @@ export interface RootRouteChildren {
   DjRoute: typeof DjRoute
   AdminLoginRoute: typeof AdminLoginRoute
   EnDjRoute: typeof EnDjRoute
+  ProjectsSlugRoute: typeof ProjectsSlugRoute
   EnIndexRoute: typeof EnIndexRoute
+  EnProjectsSlugRoute: typeof EnProjectsSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -240,6 +266,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EnDjRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects/$slug': {
+      id: '/projects/$slug'
+      path: '/projects/$slug'
+      fullPath: '/projects/$slug'
+      preLoaderRoute: typeof ProjectsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/'
@@ -282,6 +315,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminSettingsRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/en/projects/$slug': {
+      id: '/en/projects/$slug'
+      path: '/en/projects/$slug'
+      fullPath: '/en/projects/$slug'
+      preLoaderRoute: typeof EnProjectsSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -323,7 +363,9 @@ const rootRouteChildren: RootRouteChildren = {
   DjRoute: DjRoute,
   AdminLoginRoute: AdminLoginRoute,
   EnDjRoute: EnDjRoute,
+  ProjectsSlugRoute: ProjectsSlugRoute,
   EnIndexRoute: EnIndexRoute,
+  EnProjectsSlugRoute: EnProjectsSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
