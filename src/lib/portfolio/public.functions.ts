@@ -6,14 +6,14 @@ import { portfolioServices, type PortfolioService } from "@/data/portfolio-servi
 import { publishedInOrder, visibleMedia, type PublicProject } from "./model";
 
 export const readPublicPortfolio = createServerFn({ method: "GET" }).handler(async (): Promise<{
-  projects: PublicProject[]; error: boolean; imageError: boolean;
+  projects: PublicProject[]; services: { id: PortfolioService; tr: string; en: string }[]; error: boolean; imageError: boolean;
 }> => {
   // Always anonymous, even when the caller is an administrator. Never forward session headers.
   setResponseHeader("Cache-Control", "no-store");
   const url = process.env["SUPABASE_URL"];
   const key = process.env["SUPABASE_PUBLISHABLE_KEY"];
   const browserUrl = import.meta.env["VITE_SUPABASE_URL"];
-  if (!url || !key || !browserUrl) return { projects: [], error: true, imageError: false };
+  if (!url || !key || !browserUrl) return { projects: [], services: [], error: true, imageError: false };
   const db = createClient<Database>(url, key, {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     global: { fetch: (input, init) => {
@@ -35,11 +35,12 @@ export const readPublicPortfolio = createServerFn({ method: "GET" }).handler(asy
         if (!result.data || result.data.length < pageSize) return rows;
       }
     }
-    const [rawProjects, translations, assignments, media] = await Promise.all([
+    const [rawProjects, translations, assignments, media, rawServices] = await Promise.all([
       allRows((a, b) => db.from("projects").select("id,slug,name,agency,attribution_pending,industry,year_label,status,featured,display_order,original_services,responsibilities,external_url").eq("status", "published").order("display_order").order("id").range(a, b)),
       allRows((a, b) => db.from("project_translations").select("project_id,locale,description,seo_title,seo_description,og_title,og_description").order("project_id").order("locale").range(a, b)),
       allRows((a, b) => db.from("project_services").select("project_id,service_id").order("project_id").order("service_id").range(a, b)),
       allRows((a, b) => db.from("project_media").select("id,project_id,storage_path,kind,alt_tr,alt_en,published,display_order").eq("published", true).order("display_order").order("id").range(a, b)),
+      allRows((a, b) => db.from("services").select("id,name_tr,name_en").eq("published", true).order("display_order").order("id").range(a, b)),
     ]);
     const ordered = publishedInOrder(rawProjects);
     const safeMedia = visibleMedia(media, new Set(ordered.map((p) => p.id)));
@@ -78,8 +79,12 @@ export const readPublicPortfolio = createServerFn({ method: "GET" }).handler(asy
         }),
       };
     });
-    return { projects, error: false, imageError };
+    const services = rawServices.flatMap((s) => {
+      const id = portfolioServices.find((id) => id === s.id);
+      return id ? [{ id, tr: s.name_tr, en: s.name_en }] : [];
+    });
+    return { projects, services, error: false, imageError };
   } catch {
-    return { projects: [], error: true, imageError: false };
+    return { projects: [], services: [], error: true, imageError: false };
   }
 });

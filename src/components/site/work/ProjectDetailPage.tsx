@@ -21,7 +21,7 @@ export function ProjectDetailPage({ locale, slug }: { locale: Locale; slug: stri
       <div className="col-span-12 md:col-span-9">
         <p className="label-mono mb-5 text-muted-foreground">{project.contextPending ? t.work.pending : project.context} · {project.yearLabel}</p>
         <h1 className="break-words font-display text-4xl md:text-6xl">{project.name}</h1>
-        <p className="label-mono mt-6 text-primary">{project.services.map((s) => t.work.portfolioServices[s]).join(" · ")}</p>
+        <p className="label-mono mt-6 text-primary">{project.services.map((s) => data.services.find((row) => row.id === s)?.[locale] ?? t.work.portfolioServices[s]).join(" · ")}</p>
         <p className="mt-8 max-w-prose whitespace-pre-line text-lg text-muted-foreground">{project.description[locale]}</p>
         {project.externalUrl && <Button asChild variant="link" className="mt-6 px-0"><a href={project.externalUrl} target="_blank" rel="noopener noreferrer">{t.work.visit} ↗</a></Button>}
       </div>

@@ -15,6 +15,10 @@ export function Work({ t }: { t: Dict }) {
   const queryClient = useQueryClient();
   const search = validateWorkSearch(location.search);
   const { data, isFetching } = useSuspenseQuery(publicPortfolioQuery());
+  const publicDict = { ...t, work: { ...t.work, portfolioServices: {
+    ...t.work.portfolioServices,
+    ...Object.fromEntries(data.services.map((s) => [s.id, t.locale === "tr" ? s.tr : s.en])),
+  } } };
   const view = search.view;
   const featured = data.projects.filter((p) => p.featured);
   return (
@@ -43,8 +47,8 @@ export function Work({ t }: { t: Dict }) {
             <Button variant="outline" className="mt-4 rounded-none" disabled={isFetching} onClick={() => void queryClient.refetchQueries({ queryKey: ["public-portfolio"] })}>{t.work.retry}</Button>
           </div>
         ) : view === "journey" ? (
-          featured.length ? <FeaturedJourney t={t} projects={featured} /> : <p className="col-span-12 text-muted-foreground">{t.work.empty}</p>
-        ) : <ProjectArchive t={t} projects={data.projects} />}
+          featured.length ? <FeaturedJourney t={publicDict} projects={featured} /> : <p className="col-span-12 text-muted-foreground">{t.work.empty}</p>
+        ) : <ProjectArchive t={publicDict} projects={data.projects} />}
         {data.imageError && <p className="col-span-12 text-sm text-muted-foreground" role="status">{t.work.imageError}</p>}
       </div>
     </section>
