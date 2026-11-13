@@ -35,6 +35,9 @@ export type WorkSearch = z.infer<typeof workSearchSchema>;
 export function validateWorkSearch(input: unknown): WorkSearch {
   return workSearchSchema.parse(input);
 }
+export function validatePortfolioSearch(input: unknown): Partial<WorkSearch> {
+  return validateWorkSearch(input);
+}
 export function publishedInOrder<T extends { status: string; display_order: number; id: string }>(rows: T[]): T[] {
   return rows.filter((p) => p.status === "published")
     .sort((a, b) => a.display_order - b.display_order || a.id.localeCompare(b.id));

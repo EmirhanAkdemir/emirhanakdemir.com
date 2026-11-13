@@ -3,11 +3,11 @@ import { PortfolioPage } from "@/components/site/PortfolioPage";
 import { pageHead } from "@/i18n";
 import { tr } from "@/i18n/tr";
 import { publicPortfolioQuery } from "@/lib/portfolio/queries";
-import { validateWorkSearch } from "@/lib/portfolio/model";
+import { validatePortfolioSearch } from "@/lib/portfolio/model";
 import { PortfolioRouteState } from "@/components/site/work/PortfolioRouteState";
 
 export const Route = createFileRoute("/")({
-  validateSearch: validateWorkSearch,
+  validateSearch: validatePortfolioSearch,
   loader: async ({ context }) => { await context.queryClient.ensureQueryData(publicPortfolioQuery()); },
   pendingComponent: () => <PortfolioRouteState locale="tr" state="loading" />,
   errorComponent: () => <PortfolioRouteState locale="tr" state="error" />,
